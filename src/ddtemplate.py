@@ -261,9 +261,6 @@ class Lexer:
                 text = self.tpl[tag['index'] + 2:]
                 self.tokens.append(Token("text", text)) # 토큰: text 
 
-        for t in self.tokens:
-            print(t)
-
         return self.tokens
 
 
