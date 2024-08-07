@@ -1,7 +1,8 @@
 """
 Copyright (c) 2024, Mun Jaehyeon.
 License: MIT (see LICENSE for details)
-This code is based on "djindjo" (Darren Mulholland, https://github.com/dmulholl/djindjo)
+This code is based on 
+    "djindjo" (Darren Mulholland, https://github.com/dmulholl/djindjo)
 """
 
 from typing import Dict
@@ -31,25 +32,25 @@ class Template:
 class Context:
     def __init__(self, data: Dict = None):
         if data:
-            self.scope = [data] # 네임 스페이스를 나타내기 위한 스코프 (스택 구조)
+            self.dicts = [data] # 데이터를 보관할 딕셔너리들을 담는 스택
         else:
-            self.scope = [{}]
+            self.dicts = [{}]
 
     def __setitem__(self, key, value):
-        self.scope[-1][key] = value # 현재 스코프에 변수 추가 (딕셔너리 키)
+        self.dicts[-1][key] = value # 최상단 딕셔너리에 변수 추가 (딕셔너리 키)
 
     def __getitem__(self, key):
-        return self.scope[-1][key] # 현재 스코프에서 데이터 가져오기
+        return self.dicts[-1][key] # 최상단 딕셔너리에서 데이터 가져오기
 
     def push(self):
-        self.scope.append({})
+        self.dicts.append({})
 
     def pop(self):
-        self.scope.pop()
+        self.dicts.pop()
 
     @property
     def local(self):
-        return self.scope[-1] # 현재 스코프 가져오기
+        return self.dicts[-1] # 최상단 딕셔너리 가져오기
 
     def lookup(self, varstring):
         try:
@@ -167,7 +168,7 @@ class IfNode(Node):
             branch.process_children()
 
     def render(self, context: Context):
-        # 컨텍스트의 현재 스코프에 있는 데이터를 렌더 함수의 로컬 네임 스페이스에 추가
+        # 컨텍스트의 딕셔너리 스택 최상단의 데이터를 렌더 함수의 로컬 네임 스페이스에 추가
         for key, value in context.local.items():
             locals()[key] = value
 
@@ -198,15 +199,15 @@ class ForNode(Node):
 
     def render(self, context: Context):
         output = []
-        collection = context.lookup(self.collection_string) # 현재 스코프에서 키값으로 컬렉션을 찾음
+        collection = context.lookup(self.collection_string) # 컨텍스트의 최상단 딕셔너리에서 키값으로 컬렉션을 찾음
         if hasattr(collection, '__iter__'):
-            context.push() # 새로운 스코프로 사용할 딕셔너리를 컨텍스트에 추가
+            context.push() # 새로운 네임 스페이스로 사용할 딕셔너리를 컨텍스트에 추가
             for item in collection:
-                # 새로운 스코프에 var_string을 키값으로 데이터 추가
+                # 새로운 네임 스페이스에 var_string을 키값으로 데이터 추가
                 context[self.var_string] = item
                 # for 블록 안의 노드 내용을 취합
                 output.append("".join(child.render(context) for child in self.children))
-            context.pop() # 새로운 스코프를 컨텍스트에서 제거
+            context.pop() # 새로운 네임 스페이스를 컨텍스트에서 제거
         return "".join(output)
 
 

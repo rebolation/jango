@@ -1,6 +1,8 @@
 __pycache__
+_django
 _benchmark
 _routing
 _template_engine
 _database
 _security
+*.db
